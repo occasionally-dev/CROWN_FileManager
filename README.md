@@ -36,7 +36,9 @@ Setup (For Your Control Panel)
     Edit config section in the script:
     python
 "
+
     BOT_TOKEN = "your_token_here"
+    
     ADMIN_IDS = [123456789, 987654321]  # your Telegram IDs
                                                                 "
 
