@@ -14,12 +14,18 @@ FEATURES:
     Cross-platform — Windows & Linux (Linux version with systemd/crontab)
 
 Bot Commands:
-             Command	| Action
-              /start	| Show main menu with drives/folders
-      Click on folder |	Open directory
-        Click on file |	Download file
-       Delete button	| Remove file/folder
-Self-destruct button	| Completely remove the program from PC   
+
+                 Command	| Action
+             
+                  /start	| Show main menu with drives/folders
+              
+            Click on folder |	Open directory
+      
+              Click on file |	Download file
+        
+           Delete button	| Remove file/folder
+       
+    Self-destruct button	| Completely remove the program from PC   
 
 Setup (For Your Control Panel)
 
