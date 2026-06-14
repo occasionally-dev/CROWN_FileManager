@@ -34,15 +34,13 @@ Setup (For Your Control Panel)
     Get your Telegram ID: @userinfobot
     
     Edit config section in the script:
-    python
-"
+    python: 
 
     BOT_TOKEN = "your_token_here"
     
-    ADMIN_IDS = [123456789, 987654321]  # your Telegram IDs
-                                                                "
+    ADMIN_IDS = [123456789, 987654321]  # your Telegram ID
 
-    Run the script
+Run the script
 
   ⚠️ Disclaimer:
     This tool is for educational purposes only. Use only on systems you own or have explicit permission to test. Unauthorized access is illegal.
